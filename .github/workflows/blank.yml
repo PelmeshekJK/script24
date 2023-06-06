@@ -1,8 +1,30 @@
-echo "Тест 1: Проверка передачи недостающих аргументов"
-/script.sh -i test.txt
-if [ $? -eq 1 ] && [[ $(tail -n 1 output.txt) == "" ]];
-then
-    echo "Успешно: скрипт завершился с ошибкой и выходной файл пустой"
-else
-    echo "Ошибка: получен неверный результат"
-fi
+name: Test Script
+
+on: [push]
+
+jobs:
+  test_script:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Test with valid arguments
+      run: bash test-script.sh -i input_file.txt -o output_file.txt -d search_word
+      env:
+        input_file.txt: |
+          Hello world
+          Hello again
+          Goodbye world
+          Hello sunshine
+          Bye
+        search_word: Hello
+      shell: bash
+      - run: |
+          test "$(head -n 1 output_file.txt)" -eq 3
+    - name: Test with missing arguments
+      run: bash test-script.sh -i input_file.txt -o output_file.txt
+      env:
+        input_file.txt: |
+        search_word: Hello
+      shell: bash
+      - run: |
+          test $? -eq 1
